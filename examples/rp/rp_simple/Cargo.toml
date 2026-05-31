@@ -4,3 +4,43 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+pcd8544 = { path = "../../../pcd8544", features = ["defmt"]}
+#pcd8544 = { path = "../../../pcd8544"}
+
+
+embassy-embedded-hal = { workspace = true, features = ["defmt"] }
+embassy-sync = { workspace = true, features = ["defmt"] }
+embassy-executor = { workspace = true, features = ["platform-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
+embassy-time = { workspace = true, features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-rp = { workspace = true, features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
+embassy-net = { workspace = true, features = ["defmt", "icmp", "tcp", "udp", "raw", "dhcpv4", "medium-ethernet", "dns", "proto-ipv4", "proto-ipv6", "multicast"] }
+embassy-futures = { workspace = true }
+cyw43 = { workspace = true, features = ["defmt", "firmware-logs"] }
+cyw43-pio = { workspace = true, features = ["defmt"] }
+
+defmt = {workspace = true}
+defmt-rtt = {workspace = true}
+
+
+#cortex-m = { workspace = true, features = ["critical-section-single-core"] }
+cortex-m = { workspace = true, features = ["inline-asm"] }
+cortex-m-rt = { workspace = true }
+critical-section = { workspace = true }
+panic-probe = { workspace = true, features = ["print-defmt"] }
+heapless = {workspace = true}
+
+embedded-hal-1 = { workspace = true }
+embedded-hal-async = {workspace = true }
+embedded-hal-bus = { workspace = true, features = ["async"] }
+embedded-io-async = { workspace = true, features = ["defmt"] }
+#embedded-storage = { version = "0.3" }
+#static_cell = {workspace = true }
+#portable-atomic = { workspace = true, features = ["critical-section"] }
+#log = {workspace = true }
+#rand = { workspace = true, default-features = false }
+#embedded-sdmmc = {workspace = true }
+
+# [profile.release]
+# # Enable generation of debug symbols even on release builds
+# debug = true
+
