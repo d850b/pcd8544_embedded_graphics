@@ -17,23 +17,34 @@ const DISPLAY_WIDTH : u32 = 84;
 const DISPLAY_HEIGHT : u32 = 48;
 const BUFFER_SIZE : usize = (DISPLAY_WIDTH * DISPLAY_HEIGHT / 8) as usize;
 
-pub struct Pcd8544Driver<DI>{
+pub struct Pcd8544Driver<DELAY, DI, RESETPIN>{
     /// The framebuffer with one `u8` value per 8 vertical pixels.
     framebuffer: [u8; BUFFER_SIZE],
-    comm : DI
+    display_interface : DI,
+    reset_pin : RESETPIN,
+    delay : DELAY
 }
 
-impl<DI> Pcd8544Driver<DI> 
-where DI : AsyncWriteOnlyDataCommand
+impl<DELAY, DI, RESETPIN> Pcd8544Driver<DELAY, DI, RESETPIN> 
+where DI : AsyncWriteOnlyDataCommand,
+    RESETPIN : embedded_hal_1::digital::OutputPin,
+    DELAY : embedded_hal_async::delay::DelayNs
 {
-    pub fn new(comm : DI ) -> Self{
+    pub fn new(delay: DELAY, display_interface : DI, reset_pin: RESETPIN ) -> Self{
         Pcd8544Driver { 
             framebuffer: [0u8; BUFFER_SIZE], 
-            comm 
+            display_interface,
+            reset_pin,
+            delay
         }
     }
 
+
+    /// reset and initialize. 
     pub async fn init(&mut self) -> Result<(), DisplayError> {
+
+        self.reset().await;
+
         // chip active (PD=0); horizontal addressing mode (V = 0); use extended instruction set (H = 1)
         self.send_byte_command(consts::FUNCTION_SET + consts::EXTENDED_INSTRUCTION_SET).await?;
         // try 0xB1 (for 3.3V red SparkFun), 0xB8 (for 3.3V blue SparkFun), 0xBF if your display is too dark, or 0x80 to 0xFF if experimenting
@@ -55,16 +66,27 @@ where DI : AsyncWriteOnlyDataCommand
         Ok(())
     }
 
+
+    /// helper: send a single byte as command. 
     async fn send_byte_command(&mut self, c : u8) -> Result<(), DisplayError> {
-        self.comm.send_commands(DataFormat::U8(&[c])).await
+        self.display_interface.send_commands(DataFormat::U8(&[c])).await
     }
-    
+
+    /// reset
+    async fn reset(&mut self){
+        self.reset_pin.set_low();
+        self.delay.delay_ns(10).await;
+        self.reset_pin.set_high();
+        self.delay.delay_ns(10).await;
+    }
+
+    /// send framebuffer to device.    
     pub async fn flush(& mut self) -> Result<(), DisplayError>{
-        self.comm.send_data( DataFormat::U8(&self.framebuffer) ).await
+        self.display_interface.send_data( DataFormat::U8(&self.framebuffer) ).await
     }
 }
 
-impl<DI> DrawTarget for Pcd8544Driver<DI> 
+impl<DELAY, DI, RESETPIN> DrawTarget for Pcd8544Driver<DELAY, DI, RESETPIN> 
 {
     type Color = BinaryColor;
 
@@ -102,7 +124,7 @@ impl<DI> DrawTarget for Pcd8544Driver<DI>
     }
 }
 
-impl<DI> OriginDimensions for Pcd8544Driver<DI> {
+impl<DELAY, DI, RESETPIN> OriginDimensions for Pcd8544Driver<DELAY, DI, RESETPIN> {
     fn size(&self) -> Size {
         Size::new(DISPLAY_WIDTH, DISPLAY_HEIGHT)
     }

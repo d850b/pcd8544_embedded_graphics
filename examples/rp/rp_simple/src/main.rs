@@ -50,9 +50,11 @@ async fn main(_spawner: Spawner) {
     let spi1_sx_clk = p.PIN_10;
     let display_cs = p.PIN_13;
     let display_dc = p.PIN_14;
+    let display_reset = p.PIN_15;
 
     let display_cs_output = Output::new(display_cs, Level::High); // Initially disable!
     let display_dc_output = Output::new(display_dc, Level::Low);
+    let display_reset_output = Output::new(display_reset, Level::High);
 
     // create spi bus, wrap it in a mutex, so others could access it, too.
     let spi_bus = Spi::new(used_spi, spi1_sx_clk, spi1_mosi, spi1_miso, p.DMA_CH0, p.DMA_CH1, Irqs, embassy_rp::spi::Config::default());
@@ -62,10 +64,12 @@ async fn main(_spawner: Spawner) {
     let spi_device = SpiDevice::new(&spi_bus_mutex, display_cs_output);
 
     // create display interface abstraction from SPI and DC
-    let di = SPIInterface::new(spi_device, display_dc_output);
+    let display_interface = SPIInterface::new(spi_device, display_dc_output);
 
-    // create display
-    let mut display = Pcd8544Driver::new(di);
+    // create display_driver
+    let mut display_driver = Pcd8544Driver::new(embassy_time::Delay, display_interface, display_reset_output);
+
+    display_driver.init().await.unwrap();
 
     loop {
         info!("led on!");
