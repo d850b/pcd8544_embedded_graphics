@@ -10,5 +10,12 @@ defmt  = ["dep:defmt"]
 
 [dependencies]
 
+embedded-graphics = {workspace = true, features = ["defmt"]}
+embedded-graphics-core = {workspace =  true, features = ["defmt"]}
+display-interface = {workspace = true}
+
+
+
 defmt = { workspace = true, optional = true }
 #log = { workspace = true, optional = true }
+
