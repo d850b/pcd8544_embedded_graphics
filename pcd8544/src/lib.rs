@@ -10,7 +10,7 @@ use embedded_graphics::{
 
 use display_interface::{
     AsyncWriteOnlyDataCommand, 
-    DataFormat
+    DataFormat, DisplayError
 };
 
 const DISPLAY_WIDTH : u32 = 84;
@@ -33,30 +33,34 @@ where DI : AsyncWriteOnlyDataCommand
         }
     }
 
-    pub async fn init(&mut self) {
+    pub async fn init(&mut self) -> Result<(), DisplayError> {
         // chip active (PD=0); horizontal addressing mode (V = 0); use extended instruction set (H = 1)
-        self.send_byte_command(consts::FUNCTION_SET + consts::EXTENDED_INSTRUCTION_SET).await;
+        self.send_byte_command(consts::FUNCTION_SET + consts::EXTENDED_INSTRUCTION_SET).await?;
         // try 0xB1 (for 3.3V red SparkFun), 0xB8 (for 3.3V blue SparkFun), 0xBF if your display is too dark, or 0x80 to 0xFF if experimenting
-        self.send_byte_command(consts::VOP + 0b00111000).await;
+        self.send_byte_command(consts::VOP + 0b00111000).await?;
         // temp coefficient (0)
-        self.send_byte_command(consts::TEMP_COEFF).await;
+        self.send_byte_command(consts::TEMP_COEFF).await?;
         // LCD bias mode 1:48
-        self.send_byte_command(consts::BIAS + 0b011).await;
+        self.send_byte_command(consts::BIAS + 0b011).await?;
 
         // we must send 0x20 before modifying the display control mode
-        self.send_byte_command(consts::FUNCTION_SET).await;
+        self.send_byte_command(consts::FUNCTION_SET).await?;
         // set display control to normal mode (pixels are on when data is 1), inverse mode=0x0D
-        self.send_byte_command(consts::DISPLAY_CONTROL + consts::DISPLAY_CONF_NORMAL).await;
+        self.send_byte_command(consts::DISPLAY_CONTROL + consts::DISPLAY_CONF_NORMAL).await?;
 
         //self.clear();
+        self.framebuffer.fill(0);
+        self.flush().await?;
+
+        Ok(())
     }
 
-    async fn send_byte_command(&mut self, c : u8){
-        self.comm.send_commands(DataFormat::U8(&self.framebuffer)).await.unwrap()
+    async fn send_byte_command(&mut self, c : u8) -> Result<(), DisplayError> {
+        self.comm.send_commands(DataFormat::U8(&[c])).await
     }
     
-    pub async fn flush(& mut self){
-        self.comm.send_data( DataFormat::U8(&self.framebuffer) ).await.unwrap()
+    pub async fn flush(& mut self) -> Result<(), DisplayError>{
+        self.comm.send_data( DataFormat::U8(&self.framebuffer) ).await
     }
 }
 
