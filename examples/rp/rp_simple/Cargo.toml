@@ -5,8 +5,7 @@ edition = "2024"
 
 [dependencies]
 pcd8544 = { path = "../../../pcd8544", features = ["defmt"]}
-#pcd8544 = { path = "../../../pcd8544"}
-
+display-interface-spi = {workspace = true}
 
 embassy-embedded-hal = { workspace = true, features = ["defmt"] }
 embassy-sync = { workspace = true, features = ["defmt"] }
