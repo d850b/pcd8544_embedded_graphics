@@ -23,6 +23,14 @@ use embassy_sync::mutex::Mutex;
 use display_interface_spi::SPIInterface;
 use pcd8544::Pcd8544Driver;
 
+use embedded_graphics::{
+    mono_font::{ascii::FONT_6X10, MonoTextStyle, MonoTextStyleBuilder},
+    pixelcolor::BinaryColor,
+    prelude::*,
+    text::{Baseline, Text},
+};
+
+
 
 use {defmt_rtt as _, panic_probe as _};
 
@@ -36,7 +44,7 @@ bind_interrupts!(struct Irqs {
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
-    let mut led = Output::new(p.PIN_25, Level::Low);
+    let mut led = Output::new(p.PIN_16, Level::Low);
 
     //
     // set up spi
@@ -67,9 +75,22 @@ async fn main(_spawner: Spawner) {
     let display_interface = SPIInterface::new(spi_device, display_dc_output);
 
     // create display_driver
-    let mut display_driver = Pcd8544Driver::new(embassy_time::Delay, display_interface, display_reset_output);
+    let mut display = Pcd8544Driver::new(embassy_time::Delay, display_interface, display_reset_output);
 
-    display_driver.init().await.unwrap();
+    display.init().await.unwrap();
+
+    // create a text style.
+    let text_style = MonoTextStyleBuilder::new()
+    .font(&FONT_6X10)
+    .text_color(BinaryColor::On).
+    background_color(BinaryColor::Off)
+    .build();
+
+    // draw some text
+    Text::with_baseline("HiHo", Point::zero(), text_style, Baseline::Top).draw(&mut display).unwrap();
+    // and flush.
+    display.flush().await.unwrap();
+
 
     loop {
         info!("led on!");
