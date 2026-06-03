@@ -32,6 +32,28 @@ where DI : AsyncWriteOnlyDataCommand
             comm 
         }
     }
+
+    pub async fn init(&mut self) {
+        // chip active (PD=0); horizontal addressing mode (V = 0); use extended instruction set (H = 1)
+        self.send_byte_command(consts::FUNCTION_SET + consts::EXTENDED_INSTRUCTION_SET).await;
+        // try 0xB1 (for 3.3V red SparkFun), 0xB8 (for 3.3V blue SparkFun), 0xBF if your display is too dark, or 0x80 to 0xFF if experimenting
+        self.send_byte_command(consts::VOP + 0b00111000).await;
+        // temp coefficient (0)
+        self.send_byte_command(consts::TEMP_COEFF).await;
+        // LCD bias mode 1:48
+        self.send_byte_command(consts::BIAS + 0b011).await;
+
+        // we must send 0x20 before modifying the display control mode
+        self.send_byte_command(consts::FUNCTION_SET).await;
+        // set display control to normal mode (pixels are on when data is 1), inverse mode=0x0D
+        self.send_byte_command(consts::DISPLAY_CONTROL + consts::DISPLAY_CONF_NORMAL).await;
+
+        //self.clear();
+    }
+
+    async fn send_byte_command(&mut self, c : u8){
+        self.comm.send_commands(DataFormat::U8(&self.framebuffer)).await.unwrap()
+    }
     
     pub async fn flush(& mut self){
         self.comm.send_data( DataFormat::U8(&self.framebuffer) ).await.unwrap()
@@ -80,4 +102,19 @@ impl<DI> OriginDimensions for Pcd8544Driver<DI> {
     fn size(&self) -> Size {
         Size::new(DISPLAY_WIDTH, DISPLAY_HEIGHT)
     }
+}
+
+
+mod consts {
+    pub(crate) const X_ADDR: u8 = 0x80;
+    pub(crate) const Y_ADDR: u8 = 0x40;
+    pub(crate) const FUNCTION_SET: u8 = 0x20;
+    pub(crate) const FUNCTION_SET_H_ADDRESSING: u8 = 0b00;
+    pub(crate) const FUNCTION_SET_V_ADDRESSING: u8 = 0b10;
+    pub(crate) const EXTENDED_INSTRUCTION_SET: u8 = 0x01;
+    pub(crate) const VOP: u8 = 0x80;
+    pub(crate) const TEMP_COEFF: u8 = 0b100;
+    pub(crate) const BIAS: u8 = 0x10;
+    pub(crate) const DISPLAY_CONTROL: u8 = 0x08;
+    pub(crate) const DISPLAY_CONF_NORMAL: u8 = 0b100;
 }
