@@ -1,5 +1,6 @@
 #![no_std]
 
+#[allow(unused_imports)]
 use defmt::*;
 
 
@@ -74,10 +75,10 @@ where DI : AsyncWriteOnlyDataCommand,
 
     /// reset
     async fn reset(&mut self){
-        self.reset_pin.set_low();
-        self.delay.delay_ns(10).await;
-        self.reset_pin.set_high();
-        self.delay.delay_ns(10).await;
+        let _ = self.reset_pin.set_low();
+        self.delay.delay_us(10).await;
+        let _ = self.reset_pin.set_high();
+        self.delay.delay_us(10).await;
     }
 
     /// send framebuffer to device.    
@@ -132,6 +133,7 @@ impl<DELAY, DI, RESETPIN> OriginDimensions for Pcd8544Driver<DELAY, DI, RESETPIN
 
 
 mod consts {
+    #![allow(dead_code)]
     pub(crate) const X_ADDR: u8 = 0x80;
     pub(crate) const Y_ADDR: u8 = 0x40;
     pub(crate) const FUNCTION_SET: u8 = 0x20;
