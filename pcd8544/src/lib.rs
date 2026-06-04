@@ -83,6 +83,8 @@ where DI : AsyncWriteOnlyDataCommand,
 
     /// send framebuffer to device.    
     pub async fn flush(& mut self) -> Result<(), DisplayError>{
+        // set x address of ram to 0, where send data shall start to write.
+        self.send_byte_command(128).await?;
         self.display_interface.send_data( DataFormat::U8(&self.framebuffer) ).await
     }
 }
