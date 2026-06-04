@@ -7,6 +7,7 @@ edition = "2024"
 pcd8544 = { path = "../../../pcd8544", features = ["defmt"]}
 display-interface-spi = {workspace = true}
 embedded-graphics = {workspace = true}
+format_no_std = {workspace = true}
 
 embassy-embedded-hal = { workspace = true, features = ["defmt"] }
 embassy-sync = { workspace = true, features = ["defmt"] }

@@ -24,16 +24,13 @@ use display_interface_spi::SPIInterface;
 use pcd8544::Pcd8544Driver;
 
 use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyle, MonoTextStyleBuilder},
+    mono_font::{ascii::FONT_6X10, ascii::FONT_5X8, MonoTextStyle, MonoTextStyleBuilder},
     pixelcolor::BinaryColor,
     prelude::*,
     text::{Baseline, Text},
 };
 
-
-
 use {defmt_rtt as _, panic_probe as _};
-
 
 bind_interrupts!(struct Irqs {
     DMA_IRQ_0 => dma::InterruptHandler<DMA_CH0>, dma::InterruptHandler<DMA_CH1>;
@@ -44,7 +41,7 @@ bind_interrupts!(struct Irqs {
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
-    let mut led = Output::new(p.PIN_16, Level::Low);
+    let mut led = Output::new(p.PIN_22, Level::Low);
 
     //
     // set up spi
@@ -52,13 +49,13 @@ async fn main(_spawner: Spawner) {
     
     info!("set up spi and io's for pcd8544 display");
 
-    let used_spi = p.SPI1;
-    let spi1_miso = p.PIN_12;
-    let spi1_mosi = p.PIN_11;
-    let spi1_sx_clk = p.PIN_10;
-    let display_cs = p.PIN_13;
-    let display_dc = p.PIN_14;
-    let display_reset = p.PIN_15;
+    let used_spi = p.SPI0;
+    let spi1_miso = p.PIN_16;
+    let spi1_mosi = p.PIN_19;
+    let spi1_sx_clk = p.PIN_18;
+    let display_cs = p.PIN_17;
+    let display_dc = p.PIN_20;
+    let display_reset = p.PIN_21;
 
     let display_cs_output = Output::new(display_cs, Level::High); // Initially disable!
     let display_dc_output = Output::new(display_dc, Level::Low);
@@ -87,18 +84,30 @@ async fn main(_spawner: Spawner) {
     .build();
 
     // draw some text
-    Text::with_baseline("HiHo", Point::zero(), text_style, Baseline::Top).draw(&mut display).unwrap();
+    Text::with_baseline("Hello World", Point::new(0, 0), text_style, Baseline::Top).draw(&mut display).unwrap();
     // and flush.
     display.flush().await.unwrap();
 
+    let mut string_buf = [0u8; 64];
 
+    let mut counter = 0;
     loop {
-        info!("led on!");
+        display.flush().await.unwrap();
+        //info!("led on!");
         led.set_high();
         Timer::after_millis(300).await;
 
-        info!("led off!");
+        //info!("led off!");
         led.set_low();
         Timer::after_millis(300).await;
+
+        let s = format_no_std::show(&mut string_buf, format_args!("COUNTER = {}", counter)).unwrap();
+        // draw the counter value
+        Text::with_baseline(s, Point::new(0, 16), text_style, Baseline::Top).draw(&mut display).unwrap();
+        // and flush.
+        display.flush().await.unwrap();
+
+        counter+=1;
+
     }
 }

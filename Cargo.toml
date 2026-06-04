@@ -19,13 +19,14 @@ embassy-futures = { version = "0.1.2", git = "https://github.com/embassy-rs/emba
 cyw43 = { version = "0.7.0", git = "https://github.com/embassy-rs/embassy.git" }
 cyw43-pio = { version = "0.10.0", git = "https://github.com/embassy-rs/embassy.git" }
 
-# others.
-embedded-graphics = {version = "0.8.2"}
-embedded-graphics-core = {version = "0.4.1"}
+# stuff we explicitly need for pcd8544 and examples
+embedded-graphics = { version = "0.8.2"}
+embedded-graphics-core = { version = "0.4.1"}
 display-interface = { version = "0.5.0"}
-display-interface-spi = {version = "0.5.0"}
+display-interface-spi = { version = "0.5.0"}
+format_no_std = { version = "1.0.2"}
 
-
+# stuff we need generally somewhere (or not yet..)
 defmt = { version = "1.0.1"}
 defmt-rtt = {version = "1.0.0"}
 
