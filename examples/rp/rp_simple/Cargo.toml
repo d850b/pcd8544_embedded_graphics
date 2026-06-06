@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-pcd8544 = { path = "../../../pcd8544", features = ["defmt"]}
+pcd8544_embedded_graphics = { path = "../../../pcd8544_embedded_graphics", features = ["defmt"]}
 display-interface-spi = {workspace = true}
 embedded-graphics = {workspace = true}
 format_no_std = {workspace = true}

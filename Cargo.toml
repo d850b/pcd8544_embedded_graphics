@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "pcd8544", 
+    "pcd8544_embedded_graphics", 
     "examples/rp/rp_simple"
 ]
 resolver = "3"
@@ -36,7 +36,7 @@ critical-section = { version = "1.1"}
 panic-probe = { version = "1.0.0" }
 heapless = {version = "0.9"}
 
-embedded-hal-1 = { version = "1.0", package = "embedded-hal"}
+embedded-hal-1 = { version = "1.0", package = "embedded-hal"} # why the rename?
 embedded-hal-async = {version = "1.0"}
 embedded-hal-bus = { version = "0.1" }
 embedded-io-async = { version = "0.7.0" }

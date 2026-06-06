@@ -1,5 +1,5 @@
 [package]
-name = "pcd8544"
+name = "pcd8544_embedded_graphics"
 version = "0.1.0"
 edition = "2024"
 
@@ -10,7 +10,6 @@ defmt  = ["dep:defmt"]
 
 [dependencies]
 
-embedded-graphics = {workspace = true, features = ["defmt"]}
 embedded-graphics-core = {workspace =  true, features = ["defmt"]}
 display-interface = {workspace = true}
 

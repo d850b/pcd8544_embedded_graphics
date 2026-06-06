@@ -21,7 +21,7 @@ use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
 use embassy_sync::mutex::Mutex;
 
 use display_interface_spi::SPIInterface;
-use pcd8544::Pcd8544Driver;
+use pcd8544_embedded_graphics::Pcd8544Driver;
 
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, ascii::FONT_5X8, MonoTextStyle, MonoTextStyleBuilder},

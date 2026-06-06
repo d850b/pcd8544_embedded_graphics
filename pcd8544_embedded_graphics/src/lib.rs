@@ -4,7 +4,7 @@
 use defmt::*;
 
 
-use embedded_graphics::{
+use embedded_graphics_core::{
     pixelcolor::BinaryColor, 
     prelude::*
 };
