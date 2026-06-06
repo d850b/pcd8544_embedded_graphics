@@ -10,3 +10,7 @@ The driver is very simple, basically copy&paste from these sources:
 - bits and pieces from https://github.com/cschuhen/oled_drivers
 
 There is example code for raspberry pi pico, using the embassy library under /examples/rp/rp_simple.
+
+Here a picture of the display in action on a breadboard setup.
+
+![the display](doc/pictures/rpi_pcd8544_example.jpeg "the display")
