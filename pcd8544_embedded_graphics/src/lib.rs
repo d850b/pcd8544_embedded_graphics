@@ -18,7 +18,8 @@ const DISPLAY_WIDTH : u32 = 84;
 const DISPLAY_HEIGHT : u32 = 48;
 const BUFFER_SIZE : usize = (DISPLAY_WIDTH * DISPLAY_HEIGHT / 8) as usize;
 
-pub struct Pcd8544Driver<DELAY, DI, RESETPIN>{
+/// ROT lets you rotate the display. It can be 0,90,180,270. 
+pub struct Pcd8544Driver<const ROT:u32, DELAY, DI, RESETPIN>{
     /// The framebuffer with one `u8` value per 8 vertical pixels.
     framebuffer: [u8; BUFFER_SIZE],
     display_interface : DI,
@@ -26,7 +27,7 @@ pub struct Pcd8544Driver<DELAY, DI, RESETPIN>{
     delay : DELAY
 }
 
-impl<DELAY, DI, RESETPIN> Pcd8544Driver<DELAY, DI, RESETPIN> 
+impl<const ROT: u32, DELAY, DI, RESETPIN> Pcd8544Driver<ROT, DELAY, DI, RESETPIN> 
 where DI : AsyncWriteOnlyDataCommand,
     RESETPIN : embedded_hal_1::digital::OutputPin,
     DELAY : embedded_hal_async::delay::DelayNs
@@ -87,9 +88,23 @@ where DI : AsyncWriteOnlyDataCommand,
         self.send_byte_command(128).await?;
         self.display_interface.send_data( DataFormat::U8(&self.framebuffer) ).await
     }
+
+
 }
 
-impl<DELAY, DI, RESETPIN> DrawTarget for Pcd8544Driver<DELAY, DI, RESETPIN> 
+impl<const ROT: u32, DELAY, DI, RESETPIN> Pcd8544Driver<ROT, DELAY, DI, RESETPIN> {
+    fn rotate(p : Point) -> Point{
+        match ROT {
+            90 => Point::new(p.y, DISPLAY_HEIGHT as i32 - 1 - p.x),
+            180 => Point::new(DISPLAY_WIDTH as i32 - 1 - p.x, DISPLAY_HEIGHT as i32 - 1 - p.y),
+            270 => Point::new(DISPLAY_WIDTH as i32 - 1 - p.y, p.x),
+            _ => p,
+        }
+    }
+}
+
+
+impl<const ROT: u32, DELAY, DI, RESETPIN> DrawTarget for Pcd8544Driver<ROT, DELAY, DI, RESETPIN> 
 {
     type Color = BinaryColor;
 
@@ -103,7 +118,7 @@ impl<DELAY, DI, RESETPIN> DrawTarget for Pcd8544Driver<DELAY, DI, RESETPIN>
             // Check if the pixel coordinates are out of bounds (negative or greater than
             // (DISPLAY_WIDTH,DISPLAY_HEIGHT)). `DrawTarget` implementation are required to discard any out of bounds
             // pixels without returning an error or causing a panic.
-            if let Ok((x @ 0..=DISPLAY_WIDTH, y @ 0..=DISPLAY_HEIGHT)) = coord.try_into() {
+            if let Ok((x @ 0..DISPLAY_WIDTH, y @ 0..DISPLAY_HEIGHT)) = Self::rotate(coord).try_into() {
                 //
                 // the following is very explicit. Optimization should
                 // take care of it.
@@ -127,9 +142,13 @@ impl<DELAY, DI, RESETPIN> DrawTarget for Pcd8544Driver<DELAY, DI, RESETPIN>
     }
 }
 
-impl<DELAY, DI, RESETPIN> OriginDimensions for Pcd8544Driver<DELAY, DI, RESETPIN> {
+impl<const ROT: u32, DELAY, DI, RESETPIN> OriginDimensions for Pcd8544Driver<ROT, DELAY, DI, RESETPIN> {
     fn size(&self) -> Size {
-        Size::new(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+        match ROT {
+            90 =>  Size::new( DISPLAY_HEIGHT, DISPLAY_WIDTH),
+            270 =>  Size::new( DISPLAY_HEIGHT, DISPLAY_WIDTH),
+            _ =>   Size::new(DISPLAY_WIDTH,  DISPLAY_HEIGHT)
+        }
     }
 }
 

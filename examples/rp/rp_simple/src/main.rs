@@ -72,7 +72,7 @@ async fn main(_spawner: Spawner) {
     let display_interface = SPIInterface::new(spi_device, display_dc_output);
 
     // create display_driver
-    let mut display = Pcd8544Driver::new(embassy_time::Delay, display_interface, display_reset_output);
+    let mut display: Pcd8544Driver<180, _,_,_> = Pcd8544Driver::new( embassy_time::Delay, display_interface, display_reset_output);
 
     display.init().await.unwrap();
 
